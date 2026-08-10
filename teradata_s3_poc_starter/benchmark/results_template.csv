@@ -1,0 +1,5 @@
+method,run_id,start_utc,end_utc,elapsed_seconds,expected_rows,output_rows,s3_bytes,s3_objects,format,throughput_gib_per_sec,notes
+write_nos,,,,,,,,,parquet,,
+tpt_raw,,,,,,,,,raw,,
+tpt_end_to_end_parquet,,,,,,,,,parquet,,
+glue,,,,,,,,,parquet,,

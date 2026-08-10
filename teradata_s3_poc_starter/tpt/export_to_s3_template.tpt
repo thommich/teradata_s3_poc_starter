@@ -1,0 +1,56 @@
+/*
+  TPT -> S3 POC SKELETON
+
+  This is deliberately a skeleton because TPT requires a schema matching
+  the columns/types returned by your SELECT. Fill <...> placeholders.
+
+  Run the TPT process on the approved EC2/utility host, NOT SageMaker.
+
+  Prefer an EC2 instance role for AWS S3 access.
+*/
+
+DEFINE JOB EXPORT_FROM_TERADATA_TO_S3
+DESCRIPTION 'Teradata -> S3 POC'
+(
+    DEFINE SCHEMA POC_SCHEMA
+    (
+        /* Example only -- replace with your exact SELECT schema:
+        customer_id BIGINT,
+        ref_month DATE,
+        feature_1 FLOAT
+        */
+        <TPT_SCHEMA_COLUMNS>
+    );
+
+    DEFINE OPERATOR TD_EXPORT
+    TYPE EXPORT
+    SCHEMA POC_SCHEMA
+    ATTRIBUTES
+    (
+        VARCHAR TdpId          = '<TD_HOST_OR_TDPID>',
+        VARCHAR UserName       = '<TD_USERNAME>',
+        VARCHAR UserPassword   = '<USE_JOBVARS_OR_WALLET_IN_REAL_USE>',
+        VARCHAR SelectStmt     = '<PASTE_BENCHMARK_SELECT_HERE>',
+        VARCHAR PrivateLogName = 'td_export.log'
+    );
+
+    DEFINE OPERATOR S3_WRITER
+    TYPE DATACONNECTOR CONSUMER
+    SCHEMA *
+    ATTRIBUTES
+    (
+        VARCHAR AccessModuleName    = 'libs3axsmod.so',
+        VARCHAR AccessModuleInitStr =
+          'S3Bucket=<BUCKET> S3Prefix="<UNIQUE_RUN_PREFIX>/" '
+          'S3Object=part.raw S3SinglePartFile=True',
+        VARCHAR Format              = 'Formatted',
+        VARCHAR OpenMode            = 'Write',
+        VARCHAR PrivateLogName      = 's3_writer.log'
+    );
+
+    STEP EXPORT_STEP
+    (
+        APPLY TO OPERATOR (S3_WRITER)
+        SELECT * FROM OPERATOR (TD_EXPORT);
+    );
+);
